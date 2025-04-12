@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Location Color Distance</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #colorBox {
+            width: 200px;
+            height: 200px;
+            margin: 40px auto;
+            border: 2px solid #333;
+            border-radius: 12px;
+        }
+
+        #distanceText {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1> Easter 2025 </h1>
+    <p> Please make sure to "Allow location access" for this to work.</p>
+    <p>
+        The colour will let you know when you are getting
+        <span style="color: red; font-weight: bold;">warmer</span> or
+        <span style="color: blue; font-weight: bold;">colder</span>.
+    </p>
+
+    <div id="colorBox"></div>
+
+
+
+
+    <script>
+        // Set your target coordinates here (latitude, longitude)
+        const target = {
+            lat: 51.45767,  // Example: San Francisco
+            lng: 7.23800
+            // 51°27'27.6"N 7°14'16.9"E
+        };
+
+        // Haversine formula to calculate distance (in meters)
+        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radius of the earth in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const d = R * c;
+            return d;
+        }
+
+        // Map distance to color: far (blue) to close (red)
+        function getColorFromDistance(distance) {
+            const maxDist = 500; // max distance in meters
+            const clamped = Math.min(distance, maxDist);
+            const ratio = 1 - (clamped / maxDist); // 0 = far (blue), 1 = close (red)
+
+            const red = Math.floor(255 * ratio);
+            const blue = Math.floor(255 * (1 - ratio));
+
+            return `rgb(${red}, 0, ${blue})`;
+        }
+
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        const dist = getDistanceFromLatLonInMeters(
+                            latitude,
+                            longitude,
+                            target.lat,
+                            target.lng
+                        );
+
+                        const color = getColorFromDistance(dist);
+                        document.getElementById("colorBox").style.backgroundColor = color;
+                        document.getElementById("distanceText").innerText =
+                            `Distance: ${Math.round(dist)} meters`;
+                    },
+                    (error) => {
+                        document.getElementById("distanceText").innerText =
+                            "Unable to get location.";
+                        console.error(error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 10000,
+                        timeout: 10000
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        updateLocation();
+    </script>
+</body>
+</html>
