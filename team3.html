@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Location Color Distance</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #colorBox {
+            width: 200px;
+            height: 200px;
+            margin: 40px auto;
+            border: 2px solid #333;
+            border-radius: 12px;
+        }
+
+        #distanceText {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1> Easter 2025 </h1>
+    <p> Please make sure to "Allow location access" for this to work.</p>
+    <p>
+        The colour will let you know when you are getting
+        <span style="color: red; font-weight: bold;">warmer</span> or
+        <span style="color: blue; font-weight: bold;">colder</span>.
+    </p>
+
+    <div id="colorBox"></div>
+
+
+
+
+    <script>
+        // Set your target coordinates here (latitude, longitude)
+        const target = {
+
+            // 53.372469, -2.123731 team 1
+            // 53.37501627515194, -2.1239187398135355 - test 1
+            // 53.37452662995491, -2.1245141901883744 - test 2
+
+            lat: 53.37501627515194,  // Example: San Francisco
+            lng: -2.1239187398135355
+            // 51°27'27.6"N 7°14'16.9"E Germany test 51.45767, 7.23800
+            // 53.35666193292006, -2.1133454715132 poyton pools test
+        };
+
+        // Haversine formula to calculate distance (in meters)
+        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radius of the earth in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const d = R * c;
+            return d;
+        }
+
+        // Map distance to color: far (blue) to close (red)
+        function getColorFromDistance(distance) {
+
+            const maxDist = 150; // Distance in meters where color = black
+            const clamped = Math.min(distance, maxDist);
+
+            // const ratio = clamped / maxDist; // 0 = close, 1 = far
+            const ratio = 1 - (clamped / maxDist);
+            let r = 0, g = 0, b = 0;
+
+            if (ratio < 0.25) {
+                // Black to Blue
+                const t = ratio / 0.25;
+                r = 0;
+                g = 0;
+                b = Math.floor(255 * t);
+            } else if (ratio < 0.5) {
+                // Blue to Yellow
+                const t = (ratio - 0.25) / 0.25;
+                r = Math.floor(255 * t);
+                g = Math.floor(255 * t);
+                b = 255 - Math.floor(255 * t);
+            } else if (ratio < 0.95) {
+                // Yellow to Orange
+                const t = (ratio - 0.5) / 0.25;
+                r = 255;
+                g = 255 - Math.floor(128 * t); // reduce green
+                b = 0;
+            } else {
+                // Orange to Red
+                const t = (ratio - 0.95) / 0.25;
+                r = 255;
+                g = 127 - Math.floor(127 * t); // fade to red
+                b = 0;
+            }
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        const dist = getDistanceFromLatLonInMeters(
+                            latitude,
+                            longitude,
+                            target.lat,
+                            target.lng
+                        );
+
+                        const color = getColorFromDistance(dist);
+                        document.getElementById("colorBox").style.backgroundColor = color;
+                        document.getElementById("distanceText").innerText =
+                            `Distance: ${Math.round(dist)} meters`;
+                    },
+                    (error) => {
+                        document.getElementById("distanceText").innerText =
+                            "Unable to get location.";
+                        console.error(error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 10000,
+                        timeout: 10000
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        updateLocation();
+    </script>
+</body>
+</html>
