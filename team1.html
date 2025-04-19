@@ -43,11 +43,11 @@
         const target = {
 
             // 53.372469, -2.123731 team 1
-            // 53.371624, -2.105149 team 2
-            // 53.372469, -2.123731 team 3
+            // 53.37501627515194, -2.1239187398135355 - test 1
+            // 53.37452662995491, -2.1245141901883744 - test 2
 
-            lat: 53.372469,  // Example: San Francisco
-            lng: -2.123731
+            lat: 53.37501627515194,  // Example: San Francisco
+            lng: -2.1239187398135355
             // 51°27'27.6"N 7°14'16.9"E Germany test 51.45767, 7.23800
             // 53.35666193292006, -2.1133454715132 poyton pools test
         };
@@ -69,8 +69,10 @@
 
         // Map distance to color: far (blue) to close (red)
         function getColorFromDistance(distance) {
-            const maxDist = 500; // Distance in meters where color = black
+
+            const maxDist = 150; // Distance in meters where color = black
             const clamped = Math.min(distance, maxDist);
+
             // const ratio = clamped / maxDist; // 0 = close, 1 = far
             const ratio = 1 - (clamped / maxDist);
             let r = 0, g = 0, b = 0;
@@ -87,7 +89,7 @@
                 r = Math.floor(255 * t);
                 g = Math.floor(255 * t);
                 b = 255 - Math.floor(255 * t);
-            } else if (ratio < 0.75) {
+            } else if (ratio < 0.95) {
                 // Yellow to Orange
                 const t = (ratio - 0.5) / 0.25;
                 r = 255;
@@ -95,7 +97,7 @@
                 b = 0;
             } else {
                 // Orange to Red
-                const t = (ratio - 0.75) / 0.25;
+                const t = (ratio - 0.95) / 0.25;
                 r = 255;
                 g = 127 - Math.floor(127 * t); // fade to red
                 b = 0;
