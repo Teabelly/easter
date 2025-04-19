@@ -69,9 +69,11 @@
 
         // Map distance to color: far (blue) to close (red)
         function getColorFromDistance(distance) {
-            const maxDist = 1000; // Distance in meters where color = black
+            const maxDist = 500; // Distance in meters where color = black
             const clamped = Math.min(distance, maxDist);
-            const ratio = clamped / maxDist; // 0 = close, 1 = far
+
+            // const ratio = clamped / maxDist; // 0 = close, 1 = far
+            const ratio = 1 - (clamped / maxDist);
 
             let r = 0, g = 0, b = 0;
 
